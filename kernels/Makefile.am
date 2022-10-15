@@ -1,8 +1,11 @@
 NVCC=nvcc
 lib_LIBRARIES = libkernels.a
 
-libkernels_a_SOURCES = count.cu \
-		       grid_utils.cpp
+libkernels_a_SOURCES = random.cu \
+		       count.cu \
+		       reduction.cu \
+		       grid_utils.cpp \
+		       compute_step.cpp
 
 libkernels_a_AR = $(NVCC) -lib -o
 
