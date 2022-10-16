@@ -15,5 +15,6 @@ AX_CHECK_CXX_STDFLAG
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([kernels/Makefile])
 AC_CONFIG_FILES([benchmarks/Makefile])
+AC_CONFIG_FILES([test/Makefile])
 
 AC_OUTPUT

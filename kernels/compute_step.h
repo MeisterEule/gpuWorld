@@ -16,5 +16,7 @@ compute_step_t new_compute_step (int N_in, int N_out, bool input_on_device, bool
 compute_step_t cs_from_cs (compute_step_t cs_in, int N_out, bool output_on_device);
 void cs_free (compute_step_t *cs);
 void cs_pad (compute_step_t *cs, int pad_base);
+void cs_print_in (compute_step_t cs);
+void cs_print_out (compute_step_t cs);
 
 #endif

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #include <curand.h>
 #include <curand_kernel.h>
@@ -15,7 +16,7 @@ __global__ void fill_array_kernel (int *data, int N, int min, int max, curandSta
 	if (tid >= N) return;
 	curandState localState = globalState[tid];
 
- 	data[tid] = min + curand_uniform(&localState) * (min - max);
+ 	data[tid] = min + (int)(curand_uniform(&localState) * (max - min));
 }
 
 static curandState *deviceCurandStates;

@@ -15,7 +15,7 @@ __global__ void segmented_sum_reduction_kernel (int *input, int *output) {
 	input_s[ltid] = input[gtid] + input[gtid + blockDim.x];
 	__syncthreads();
 
-	for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+	for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
 		__syncthreads();
 		if (ltid < stride) input_s[ltid] += input_s[ltid + stride];
 	}
@@ -27,6 +27,8 @@ int computeArraySum (compute_step_t *cs_h) {
 
 	int n_threads, n_blocks;
 	getGridDimension1D (cs_h->n_data_in, &n_blocks, &n_threads);
+	n_threads = GRID_MAX_THREADS / 2;
+	n_blocks = cs_h->n_data_in / n_threads / 2;
 
 
 	int *data_d;

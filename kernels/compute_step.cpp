@@ -1,5 +1,7 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <cuda_runtime_api.h>
 
@@ -53,6 +55,28 @@ void cs_pad (compute_step_t *cs, int pad_base) {
 	   memset (cs->data_in + cs->n_data_in, 0, (new_size - cs->n_data_in) * sizeof(int));
 	}
 	cs->n_data_in = new_size;
+}
+
+void cs_print_in (compute_step_t cs) {
+	if (cs.input_on_device) {
+		printf ("Input is on device. Cannot be printed.\n");
+	} else {
+		for (int i = 0; i < cs.n_data_in; i++) {
+			printf ("%d ", cs.data_in[i]);
+		}
+		printf ("\n");
+	}
+}
+
+void cs_print_out (compute_step_t cs) {
+	if (cs.output_on_device) {
+		printf ("Input is on device. Cannot be printed.\n");
+	} else {
+		for (int i = 0; i < cs.n_data_out; i++) {
+			printf ("%d ", cs.data_out[i]);
+		}
+		printf ("\n");
+	}
 }
 
 void cs_free (compute_step_t *cs) {
