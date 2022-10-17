@@ -8,7 +8,5 @@ int main (int argc, char *argv[]) {
 	initRNG (DEFAULT_SEED, N);
 	int *random_numbers = generateRandomArrayInt (N, 0, 100);
 
-
-//	int *count = countElementsInArray (random_numbers, N);
 	free(random_numbers);	
 }

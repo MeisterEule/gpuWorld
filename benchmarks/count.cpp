@@ -16,20 +16,21 @@ int main (int argc, char *argv[]) {
 
 	Timer tt("CreateNumbers", "ms");
 	initRNG (DEFAULT_SEED, N);
-	cs_numbers_to_count.data_in = generateRandomArrayInt (N, 0, N);
+	cs_numbers_to_count.data_in = generateRandomArrayInt (N, 0, N-1);
 	tt.stop();
-	//cs_print_in (cs_numbers_to_count);
 
 	tt.reset("countNumbers");
 	countElementsInArray (&cs_numbers_to_count);
         tt.stop();
-	//cs_print_out (cs_numbers_to_count);
 
-	//compute_step_t cs_count_to_average = cs_from_cs (cs_numbers_to_count, 1, false);
-	compute_step_t cs_count_to_average = new_compute_step (N, 1, false, false);
-	for (int i = 0; i < N; i++) {
-		cs_count_to_average.data_in[i] = 1;
-	}
+	//int *count_cpu = countCPU (cs_numbers_to_count.data_in, cs_numbers_to_count.n_data_in);
+
+	//for (int i = 0; i < cs_numbers_to_count.n_data_in; i++) {
+	//	//if (cs_numbers_to_count.data_out[i] != count_cpu[i]) printf ("Does not match: %d\n", i);
+	//}
+	
+
+        compute_step_t cs_count_to_average = cs_from_cs (cs_numbers_to_count, 1, false);
 
 	tt.reset("ComputeSum");
 	int sum = computeArraySum (&cs_count_to_average);
