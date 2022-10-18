@@ -16,7 +16,7 @@ int main (int argc, char *argv[]) {
 
 	Timer tt("CreateNumbers", "ms");
 	initRNG (DEFAULT_SEED, N);
-	cs_numbers_to_count.data_in->push_back(generateRandomArrayInt (N, 0, N-1));
+	cs_numbers_to_count.SetInFirst(generateRandomArrayInt (N, 0, N-1));
 	tt.stop();
 
 	tt.reset("countNumbers");

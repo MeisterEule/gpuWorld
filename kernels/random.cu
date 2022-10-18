@@ -16,7 +16,7 @@ __global__ void fill_array_kernel (int *data, int N, int min, int max, curandSta
 	if (tid >= N) return;
 	curandState localState = globalState[tid];
 
- 	data[tid] = min + (int)(curand_uniform(&localState)) * (max - min);
+ 	data[tid] = min + (int)(curand_uniform(&localState) * (max - min));
 }
 
 static curandState *deviceCurandStates;

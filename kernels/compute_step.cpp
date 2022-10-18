@@ -62,6 +62,11 @@ ComputeStepInt::ComputeStepInt(ComputeStepInt cs, int N_out, bool on_device): Co
 	data_out->push_back(out);
 }
 
+void ComputeStepInt::SetInFirst (int *data) {
+   int *this_data = data_in->front();
+   this_data = data;
+}
+
 void ComputeStepInt::Pad (int padding_base) {
    std::list<int>::iterator it_n = n_data_in->begin();
    std::list<bool>::iterator it_od = input_on_device->begin();
@@ -82,4 +87,26 @@ void ComputeStepInt::Pad (int padding_base) {
       }
       *it_n = new_size;
    }
+}
+
+void ComputeStepInt::Print () {
+   printf ("In States: %d\n", n_data_in->size());  
+   std::list<int>::iterator it_n = n_data_in->begin();
+   std::list<int*>::iterator it_data = data_in->begin();
+
+   int n_states = 0;
+   for (; it_n != n_data_in->end() && it_data != data_in->end(); ++it_n, ++it_data) {
+      printf ("%d: ", n_states++);
+      int *tmp = *it_data;
+      for (int i = 0; i < *it_n; i++) {
+	      printf ("%d ", tmp[i]);
+      }
+      printf ("\n");
+   }
+
+
+
+
+
+
 }
