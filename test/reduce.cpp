@@ -6,14 +6,18 @@
 #include "reduction.h"
 
 int doIteration (int N) {
-	compute_step_t cs = new_compute_step (N, 1, false, false);
+	ComputeStepInt cs (N, 1, false, false);
+        int *data_in = (int*)malloc(N * sizeof(int));
 	for (int i = 0; i < N; i++) {
-		cs.data_in[i] = 1;
+		data_in[i] = 1;
 	}
+	int *cs_data_in = cs.data_in->front();
+	cs_data_in = data_in;
+        
 
 	int sum = computeArraySum (&cs);
-	free(cs.data_in);
-	free(cs.data_out);
+	//free(cs.data_in);
+	//free(cs.data_out);
 
 	return sum;
 }

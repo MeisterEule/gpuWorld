@@ -22,33 +22,40 @@ __global__ void segmented_sum_reduction_kernel (int *input, int *output) {
         if (ltid == 0) atomicAdd(&(output[0]), input_s[0]);
 }
 
-int computeArraySum (compute_step_t *cs_h) {
-	cs_pad (cs_h, 2 * BLOCK_DIM);
+int computeArraySum (ComputeStepInt *cs_h) {
+	cs_h->Pad(2 * BLOCK_DIM);
+
+	int n_data_in = cs_h->n_data_in->front();
+        int n_data_out = cs_h->n_data_out->front();
+	int *data_in = cs_h->data_in->front();
+	int *data_out = cs_h->data_out->front(); 
+	bool input_on_device = cs_h->input_on_device->front();
+	bool output_on_device = cs_h->output_on_device->front();
 
 	int n_threads, n_blocks;
-	getGridDimension1D (cs_h->n_data_in, &n_blocks, &n_threads);
+	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
 	n_threads = GRID_MAX_THREADS / 2;
-	n_blocks = cs_h->n_data_in / n_threads / 2;
+	n_blocks = n_data_in / n_threads / 2;
 
 
 	int *data_d;
-	if (cs_h->input_on_device) {
-		data_d = cs_h->data_in;
+	if (input_on_device) {
+		data_d = data_in;
 	} else {
-		cudaMalloc((void**)&data_d, cs_h->n_data_in * sizeof(int));
-		cudaMemcpy(data_d, cs_h->data_in, cs_h->n_data_in * sizeof(int), cudaMemcpyHostToDevice);
+		cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
+		cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 	int *sum_d;
-	if (cs_h->output_on_device) {
-		sum_d = cs_h->data_out;
+	if (output_on_device) {
+		sum_d = data_out;
 	} else {
-		cudaMalloc((void**)&sum_d, cs_h->n_data_out * sizeof(int));
-		cudaMemset(sum_d, 0, cs_h->n_data_out * sizeof(int));
+		cudaMalloc((void**)&sum_d, n_data_out * sizeof(int));
+		cudaMemset(sum_d, 0, n_data_out * sizeof(int));
 	}
 
 	segmented_sum_reduction_kernel<<<n_blocks,n_threads,n_threads * sizeof(int)>>>(data_d, sum_d);
 	int sum;
 	cudaMemcpy (&sum, sum_d, sizeof(int), cudaMemcpyDeviceToHost);
-	if (!cs_h->input_on_device) cudaFree(data_d);
+	if (!input_on_device) cudaFree(data_d);
 	return sum;
 }

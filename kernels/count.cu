@@ -39,65 +39,79 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 }
 
 
-void countElementsInArray (compute_step_t *cs_h) {
+//void countElementsInArray (compute_step_t *cs_h) {
+void countElementsInArray (ComputeStepInt *cs_h) {
+        int n_data_in = cs_h->n_data_in->front();
+	int n_data_out = cs_h->n_data_out->front();
+        bool input_on_device = cs_h->input_on_device->front();
+	bool output_on_device = cs_h->input_on_device->front();
+	int *data_in = cs_h->data_in->front();
+        int *data_out = cs_h->data_out->front();
 	int n_threads, n_blocks;
-	getGridDimension1D (cs_h->n_data_in, &n_blocks, &n_threads);
+	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
 
 
 	int *data_d;
-	if (cs_h->input_on_device) {
-		data_d = cs_h->data_in;
+	if (input_on_device) {
+		data_d = data_in;
 	} else {
-		cudaMalloc((void**)&data_d, cs_h->n_data_in * sizeof(int));
-	 	cudaMemcpy(data_d, cs_h->data_in, cs_h->n_data_in * sizeof(int), cudaMemcpyHostToDevice);
+		cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
+	 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 
 	int *count_d;
-	if (cs_h->output_on_device) {
-		count_d = cs_h->data_out;
+	if (output_on_device) {
+		count_d = data_out;
 	} else {
-		cudaMalloc((void**)&count_d, cs_h->n_data_out * sizeof(int));
+		cudaMalloc((void**)&count_d, n_data_out * sizeof(int));
 	}
-	cudaMemset(count_d, 0, cs_h->n_data_out * sizeof(int));
+	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
-	count_elements_in_array_kernel_int<<<n_blocks,n_threads>>>(data_d, count_d, cs_h->n_data_in);
+	count_elements_in_array_kernel_int<<<n_blocks,n_threads>>>(data_d, count_d, n_data_in);
 
-	if (!cs_h->output_on_device) {
-	   cudaMemcpy(cs_h->data_out, count_d, cs_h->n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
+	if (!output_on_device) {
+	   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	}
-	if (!cs_h->input_on_device) cudaFree(data_d);
-	if (!cs_h->output_on_device) cudaFree(count_d);
+	if (!input_on_device) cudaFree(data_d);
+	if (!output_on_device) cudaFree(count_d);
 }
 
-void computeAverageOfArray (compute_step_t *cs_h) {
+void computeAverageOfArray (ComputeStepInt *cs_h) {
 	// TODO: Check if N_out = 1
+        int n_data_in = cs_h->n_data_in->front();
+	int n_data_out = cs_h->n_data_out->front();
+        bool input_on_device = cs_h->input_on_device->front();
+	bool output_on_device = cs_h->input_on_device->front();
+	int *data_in = cs_h->data_in->front();
+        int *data_out = cs_h->data_out->front();
+
 	int n_threads, n_blocks;
-	getGridDimension1D (cs_h->n_data_in, &n_blocks, &n_threads);
+	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
  	if (n_blocks > 1) printf ("Warning: Only one block for reduction supported\n");	
 
 	int *data_d;
-	if (cs_h->input_on_device) {
-		data_d = cs_h->data_in;
+	if (input_on_device) {
+		data_d = data_in;
 	} else {
-		cudaMalloc((void**)&data_d, cs_h->n_data_in * sizeof(int));
-		cudaMemcpy(data_d, cs_h->data_in, cs_h->n_data_in * sizeof(int), cudaMemcpyHostToDevice);
+		cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
+		cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 
 	int *count_d;
 	if (cs_h->output_on_device) {
-		count_d = cs_h->data_out;
+		count_d = data_out;
 	} else {
-		cudaMalloc((void**)&count_d, cs_h->n_data_out * sizeof(int));
+		cudaMalloc((void**)&count_d, n_data_out * sizeof(int));
 	}
-	cudaMemset(count_d, 0, cs_h->n_data_out * sizeof(int));
+	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
-	avg_atomic_kernel<<<n_blocks,n_threads>>>(data_d, count_d, cs_h->n_data_in);
+	avg_atomic_kernel<<<n_blocks,n_threads>>>(data_d, count_d, n_data_in);
 
 	if (!cs_h->output_on_device) {
-	   cudaMemcpy(cs_h->data_out, count_d, cs_h->n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
+	   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	}
-	if (!cs_h->input_on_device) cudaFree(data_d);
-	if (!cs_h->output_on_device) cudaFree(count_d);
+	if (!input_on_device) cudaFree(data_d);
+	if (!output_on_device) cudaFree(count_d);
 }
 
 int *countElementsInArray (char *data, int n_data) {

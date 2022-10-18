@@ -2,21 +2,32 @@
 #define COMPUTE_STEP_H
 
 #include <stdbool.h>
+#include <list>
 
-typedef struct {
-	int n_data_in;
-	int n_data_out;
-	int *data_in;
-	int *data_out;
- 	bool input_on_device;
-	bool output_on_device;
-} compute_step_t;
+class ComputeStep
+{
+   public:
+      std::list<int> *n_data_in;
+      std::list<int> *n_data_out;
+      std::list<bool> *input_on_device;
+      std::list<bool> *output_on_device;
 
-compute_step_t new_compute_step (int N_in, int N_out, bool input_on_device, bool output_on_device);
-compute_step_t cs_from_cs (compute_step_t cs_in, int N_out, bool output_on_device);
-void cs_free (compute_step_t *cs);
-void cs_pad (compute_step_t *cs, int pad_base);
-void cs_print_in (compute_step_t cs);
-void cs_print_out (compute_step_t cs);
+      ComputeStep(int N_in, int N_out, bool i1, bool i2);
+      ComputeStep(ComputeStep cs, int N_out, bool on_device);
+};
+
+class ComputeStepInt: public ComputeStep
+{
+   //using ComputeStep::ComputeStep;
+   public:
+	std::list<int*> *data_in;
+	std::list<int*> *data_out;
+        
+        ComputeStepInt (int N_in, int N_out, bool i1, bool i2);
+	ComputeStepInt (ComputeStepInt cs, int N_out, bool on_device);
+
+ 	void Pad (int padding_base);
+};
+
 
 #endif

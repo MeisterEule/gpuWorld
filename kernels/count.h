@@ -3,9 +3,9 @@
 
 #include "compute_step.h"
 
-void countElementsInArray (compute_step_t *cs);
+void countElementsInArray (ComputeStepInt *cs);
 int *countElementsInArray (char *data, int n_data);
 
-void computeAverageOfArray (compute_step_t *cs);
+void computeAverageOfArray (ComputeStepInt *cs);
 
 #endif

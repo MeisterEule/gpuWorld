@@ -3,6 +3,6 @@
 
 #include "compute_step.h"
 
-int computeArraySum (compute_step_t *cs_h);
+int computeArraySum (ComputeStepInt *cs_h);
 
 #endif

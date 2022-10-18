@@ -2,92 +2,84 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <list>
 
 #include <cuda_runtime_api.h>
 
 #include "compute_step.h"
 
-compute_step_t new_compute_step (int N_in, int N_out, bool input_on_device, bool output_on_device) {
-	compute_step_t cs;
-	cs.n_data_in = N_in;
-	cs.n_data_out = N_out;
-	cs.input_on_device = input_on_device;
-	cs.output_on_device = output_on_device;
-	if (input_on_device) {
-		cudaMalloc ((void**)&cs.data_in, N_in * sizeof(int));
-	} else {
-		cs.data_in = (int*)malloc(N_in * sizeof(int));
-	}
-	if (output_on_device) {
-		cudaMalloc ((void**)&cs.data_out, N_out * sizeof(int));
-	} else {
-		cs.data_out = (int*)malloc(N_out * sizeof(int));
-	}
-	return cs;
+ComputeStep::ComputeStep(int N_in, int N_out, bool i1, bool i2) {
+   n_data_in = new std::list<int>;
+   n_data_out = new std::list<int>;
+   input_on_device = new std::list<bool>;
+   output_on_device = new std::list<bool>;
+   n_data_in->push_back(N_in);
+   n_data_out->push_back(N_out);
+   input_on_device->push_back(i1);
+   output_on_device->push_back(i2);
 }
 
-compute_step_t cs_from_cs (compute_step_t cs_in, int N_out, bool output_on_device) {
-	compute_step_t cs_out;
-	cs_out.n_data_in = cs_in.n_data_out;
-	cs_out.n_data_out = N_out;
-	cs_out.input_on_device = cs_in.output_on_device;
-	cs_out.output_on_device = output_on_device;
-	cs_out.data_in = cs_in.data_out;
-	if (output_on_device) {
-		cudaMalloc((void**)&cs_out.n_data_out, N_out * sizeof(int));
-	} else {
-		cs_out.data_out = (int*)malloc(N_out * sizeof(int));
-	}
-	return cs_out;
+ComputeStep::ComputeStep(ComputeStep cs, int N_out, bool on_device) {
+   n_data_in = cs.n_data_out;
+   input_on_device = cs.output_on_device;
+
+   n_data_out = (std::list<int>*)malloc(sizeof(std::list<int>));
+   output_on_device = (std::list<bool>*)malloc(sizeof(std::list<bool>));
+   n_data_out->push_back(N_out);
+   output_on_device->push_back(on_device);
 }
 
-void cs_pad (compute_step_t *cs, int pad_base) {
-	int new_size = (cs->n_data_in / pad_base + 1) * pad_base;	
-	if (cs->input_on_device) {
-	   int *new_data;
-	   cudaMalloc ((void**)&new_data, new_size * sizeof(int));
-	   cudaMemset (new_data, 0, new_size * sizeof(int));
-	   cudaMemcpy (new_data, cs->data_in, cs->n_data_in * sizeof(int), cudaMemcpyDeviceToDevice);
-	   cudaFree(cs->data_in);
-	   cs->data_in = new_data;
+ComputeStepInt::ComputeStepInt(int N_in, int N_out, bool i1, bool i2): ComputeStep(N_in, N_out, i1, i2) {
+        printf ("Construct ComputeStepInt\n");
+	data_in = new std::list<int*>;
+	data_out = new std::list<int*>;
+	int *in, *out;
+	if (i1) {
+		cudaMalloc((void**)&in, N_in * sizeof(int));
 	} else {
-	   cs->data_in = (int*)realloc (cs->data_in, new_size * sizeof(int));
-	   memset (cs->data_in + cs->n_data_in, 0, (new_size - cs->n_data_in) * sizeof(int));
+		in = (int*)malloc(N_in * sizeof(int));
 	}
-	cs->n_data_in = new_size;
+
+	if (i1) {
+		cudaMalloc((void**)&out, N_out * sizeof(int));
+	} else {
+		out = (int*)malloc(N_out * sizeof(int));
+	}
+
+	data_in->push_back(in);
+	data_out->push_back(out);
 }
 
-void cs_print_in (compute_step_t cs) {
-	if (cs.input_on_device) {
-		printf ("Input is on device. Cannot be printed.\n");
+ComputeStepInt::ComputeStepInt(ComputeStepInt cs, int N_out, bool on_device): ComputeStep(cs, N_out, on_device) {
+	data_in = cs.data_out;
+	data_out = (std::list<int*>*)malloc(sizeof(std::list<int*>));
+	int *out;
+	if (on_device) {
+		cudaMalloc((void**)&out, N_out * sizeof(int));
 	} else {
-		for (int i = 0; i < cs.n_data_in; i++) {
-			printf ("%d ", cs.data_in[i]);
-		}
-		printf ("\n");
+		out = (int*)malloc(N_out * sizeof(int));
 	}
+	data_out->push_back(out);
 }
 
-void cs_print_out (compute_step_t cs) {
-	if (cs.output_on_device) {
-		printf ("Input is on device. Cannot be printed.\n");
-	} else {
-		for (int i = 0; i < cs.n_data_out; i++) {
-			printf ("%d ", cs.data_out[i]);
-		}
-		printf ("\n");
-	}
-}
-
-void cs_free (compute_step_t *cs) {
-	if (cs->input_on_device) {
-	   cudaFree(cs->data_in);
-	} else {
-	   free(cs->data_in);
-        }	   
-	if (cs->output_on_device) {
-	   cudaFree(cs->data_out);
-	} else {
-	   free(cs->data_out);
-	}
+void ComputeStepInt::Pad (int padding_base) {
+   std::list<int>::iterator it_n = n_data_in->begin();
+   std::list<bool>::iterator it_od = input_on_device->begin();
+   std::list<int*>::iterator it_data = data_in->begin(); 
+   for (; it_n != n_data_in->end() && it_data != data_in->end() && it_od != input_on_device->end();
+          ++it_n, ++it_data, ++it_od) {
+      int new_size = (*it_n / padding_base + 1) * padding_base;
+      if (*it_od) {
+         int *new_data;
+	 cudaMalloc ((void**)&new_data, new_size * sizeof(int));
+         cudaMemset (new_data, 0, new_size * sizeof(int));
+         cudaMemcpy (new_data, *it_data, *it_n * sizeof(int), cudaMemcpyDeviceToDevice); 
+         cudaFree (*it_data);
+	 *it_data = new_data;
+      } else {
+         *it_data = (int*)realloc (*it_data, new_size * sizeof(int));
+         memset (*it_data + *it_n, 0, (new_size - *it_n) * sizeof(int));
+      }
+      *it_n = new_size;
+   }
 }
