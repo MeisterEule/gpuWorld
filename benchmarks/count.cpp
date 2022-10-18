@@ -12,11 +12,11 @@
 
 int main (int argc, char *argv[]) {
 	int N = argc > 1 ? atoi(argv[1]) : N_DEFAULT;
-	ComputeStepInt cs_numbers_to_count (N, N, false, false);
-
 	Timer tt("CreateNumbers", "ms");
 	initRNG (DEFAULT_SEED, N);
-	cs_numbers_to_count.SetInFirst(generateRandomArrayInt (N, 0, N-1));
+	ComputeStepInt cs_numbers_to_count (N, N, false, false, generateRandomArrayInt (N, 0, N-1));
+
+	//cs_numbers_to_count.SetInFirst(generateRandomArrayInt (N, 0, N-1));
 	tt.stop();
 
 	tt.reset("countNumbers");

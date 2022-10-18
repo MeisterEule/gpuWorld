@@ -30,7 +30,6 @@ ComputeStep::ComputeStep(ComputeStep cs, int N_out, bool on_device) {
 }
 
 ComputeStepInt::ComputeStepInt(int N_in, int N_out, bool i1, bool i2): ComputeStep(N_in, N_out, i1, i2) {
-        printf ("Construct ComputeStepInt\n");
 	data_in = new std::list<int*>;
 	data_out = new std::list<int*>;
 	int *in, *out;
@@ -38,6 +37,28 @@ ComputeStepInt::ComputeStepInt(int N_in, int N_out, bool i1, bool i2): ComputeSt
 		cudaMalloc((void**)&in, N_in * sizeof(int));
 	} else {
 		in = (int*)malloc(N_in * sizeof(int));
+	}
+
+	if (i1) {
+		cudaMalloc((void**)&out, N_out * sizeof(int));
+	} else {
+		out = (int*)malloc(N_out * sizeof(int));
+	}
+
+	data_in->push_back(in);
+	data_out->push_back(out);
+}
+
+ComputeStepInt::ComputeStepInt(int N_in, int N_out, bool i1, bool i2, int *data): ComputeStep(N_in, N_out, i1, i2) {
+	data_in = new std::list<int*>;
+	data_out = new std::list<int*>;
+	int *in, *out;
+	if (i1) {
+		cudaMalloc((void**)&in, N_in * sizeof(int));
+		cudaMemcpy(in, data, N_in * sizeof(int), cudaMemcpyHostToDevice);
+	} else {
+		//in = (int*)malloc(N_in * sizeof(int));
+		in = data;
 	}
 
 	if (i1) {
@@ -89,7 +110,7 @@ void ComputeStepInt::Pad (int padding_base) {
    }
 }
 
-void ComputeStepInt::Print () {
+void ComputeStepInt::PrintIn () {
    printf ("In States: %d\n", n_data_in->size());  
    std::list<int>::iterator it_n = n_data_in->begin();
    std::list<int*>::iterator it_data = data_in->begin();
@@ -103,10 +124,20 @@ void ComputeStepInt::Print () {
       }
       printf ("\n");
    }
+}
 
+void ComputeStepInt::PrintOut () {
+   printf ("Out States: %d\n", n_data_in->size());  
+   std::list<int>::iterator it_n = n_data_out->begin();
+   std::list<int*>::iterator it_data = data_out->begin();
 
-
-
-
-
+   int n_states = 0;
+   for (; it_n != n_data_out->end() && it_data != data_out->end(); ++it_n, ++it_data) {
+      printf ("%d: ", n_states++);
+      int *tmp = *it_data;
+      for (int i = 0; i < *it_n; i++) {
+	      printf ("%d ", tmp[i]);
+      }
+      printf ("\n");
+   }
 }

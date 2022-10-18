@@ -32,10 +32,8 @@ int computeArraySum (ComputeStepInt *cs_h) {
 	bool input_on_device = cs_h->input_on_device->front();
 	bool output_on_device = cs_h->output_on_device->front();
 
-	int n_threads, n_blocks;
-	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
-	n_threads = GRID_MAX_THREADS / 2;
-	n_blocks = n_data_in / n_threads / 2;
+	int n_threads = GRID_MAX_THREADS / 2;
+	int n_blocks = n_data_in / n_threads / 2;
 
 
 	int *data_d;

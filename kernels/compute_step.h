@@ -24,11 +24,13 @@ class ComputeStepInt: public ComputeStep
 	std::list<int*> *data_out;
         
         ComputeStepInt (int N_in, int N_out, bool i1, bool i2);
+        ComputeStepInt (int N_in, int N_out, bool i1, bool i2, int *data);
 	ComputeStepInt (ComputeStepInt cs, int N_out, bool on_device);
 
 	void SetInFirst (int *data);
  	void Pad (int padding_base);
-	void Print ();
+	void PrintIn ();
+	void PrintOut ();
 };
 
 
