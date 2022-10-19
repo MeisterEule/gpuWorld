@@ -22,7 +22,6 @@ ComputeStep::ComputeStep(int N_in, int N_out, bool i1, bool i2) {
 ComputeStep::ComputeStep(ComputeStep cs, int N_out, bool on_device) {
    n_data_in = cs.n_data_out;
    input_on_device = cs.output_on_device;
-
    n_data_out = new std::list<int>;
    output_on_device = new std::list<bool>;
    n_data_out->push_back(N_out);
@@ -73,7 +72,7 @@ ComputeStepInt::ComputeStepInt(int N_in, int N_out, bool i1, bool i2, int *data)
 
 ComputeStepInt::ComputeStepInt(ComputeStepInt cs, int N_out, bool on_device): ComputeStep(cs, N_out, on_device) {
 	data_in = cs.data_out;
-	data_out = (std::list<int*>*)malloc(sizeof(std::list<int*>));
+	data_out = new std::list<int*>;
 	int *out;
 	if (on_device) {
 		cudaMalloc((void**)&out, N_out * sizeof(int));
