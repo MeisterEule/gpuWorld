@@ -23,8 +23,8 @@ ComputeStep::ComputeStep(ComputeStep cs, int N_out, bool on_device) {
    n_data_in = cs.n_data_out;
    input_on_device = cs.output_on_device;
 
-   n_data_out = (std::list<int>*)malloc(sizeof(std::list<int>));
-   output_on_device = (std::list<bool>*)malloc(sizeof(std::list<bool>));
+   n_data_out = new std::list<int>;
+   output_on_device = new std::list<bool>;
    n_data_out->push_back(N_out);
    output_on_device->push_back(on_device);
 }
