@@ -9,14 +9,12 @@
 
 #include <cuda_runtime_api.h>
 
-template<typename T> void cudaMallocT(T *&d_var, std::size_t count) {
-	cudaError_t ce = cudaMalloc((void**)&d_var, count * sizeof(T));
-	std::cout << cudaGetErrorString(ce) << std::endl;
-}
+#include "memoryManager.hpp"
 
 template<typename T> class ComputeStep 
 {
 	public:
+	   memoryManager *mm;
 	   std::list<int> *n_data_in;
 	   std::list<int> *n_data_out;
 	   std::list<bool> *input_on_device;
@@ -24,9 +22,9 @@ template<typename T> class ComputeStep
 	   std::list<T*> *data_in;
 	   std::list<T*> *data_out;
 
-	   ComputeStep (int N_in, int N_out, bool i1, bool i2);
-	   ComputeStep (int N_in, int N_out, bool i1, bool i2, T* data);
-	   ComputeStep (ComputeStep<T> cs, int N_out, bool on_device);
+	   ComputeStep (memoryManager *mm, int N_in, int N_out, bool i1, bool i2);
+	   ComputeStep (memoryManager *mm, int N_in, int N_out, bool i1, bool i2, T* data);
+	   ComputeStep (memoryManager *mm, ComputeStep<T> cs, int N_out, bool on_device);
 
 	   void SetInFirst (T* data);
 	   void Pad (int padding_base);
@@ -34,7 +32,8 @@ template<typename T> class ComputeStep
 	   void PrintOut ();
 };
 
-template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, bool i2) {
+template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2) {
+	mm = mm;
      	n_data_in = new std::list<int>;
         n_data_out = new std::list<int>;
         input_on_device = new std::list<bool>;
@@ -48,13 +47,15 @@ template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, b
 	data_out = new std::list<T*>;
 	T *in, *out;
 	if (i1) {
-		cudaMallocT<T>(in, N_in);
+		//cudaMallocT<T>(in, N_in);
+		mm->deviceAllocate<int> (in, N_in);
 	} else {
 		in = (T*)malloc(N_in * sizeof(T));
 	}
 
 	if (i1) {
-		cudaMallocT<T>(out, N_out);
+		//cudaMallocT<T>(out, N_out);
+		mm->deviceAllocate<int> (out, N_out);
 	} else {
 		out = (T*)malloc(N_out * sizeof(T));
 	}
@@ -63,8 +64,8 @@ template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, b
 	data_out->push_back(out);
 }
 
-template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, bool i2, T *data) {
-	printf ("HUHU\n");
+template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2, T *data) {
+	mm = mm;
 	n_data_in = new std::list<int>;
         n_data_out = new std::list<int>;
         input_on_device = new std::list<bool>;
@@ -78,14 +79,16 @@ template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, b
 	data_out = new std::list<T*>;
 	T *in, *out;
 	if (i1) {
-		cudaMallocT<T>(in, N_in);
+		//cudaMallocT<T>(in, N_in);
+		mm->deviceAllocate<int> (in, N_in);
 		cudaMemcpy(in, data, N_in * sizeof(T), cudaMemcpyHostToDevice);
 	} else {
 		in = data;
 	}
 
 	if (i1) {
-		cudaMallocT<T>(out, N_out);
+		//cudaMallocT<T>(out, N_out);
+		mm->deviceAllocate<int> (out, N_out);
 	} else {
 		out = (T*)malloc(N_out * sizeof(T));
 	}
@@ -94,7 +97,8 @@ template<typename T> ComputeStep<T>::ComputeStep(int N_in, int N_out, bool i1, b
 	data_out->push_back(out);
 }
 
-template<typename T> ComputeStep<T>::ComputeStep(ComputeStep<T> cs, int N_out, bool on_device) {
+template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, ComputeStep<T> cs, int N_out, bool on_device) {
+	mm = mm;
      	n_data_in = cs.n_data_out;
    	input_on_device = cs.output_on_device;
    	n_data_out = new std::list<int>;
@@ -106,7 +110,7 @@ template<typename T> ComputeStep<T>::ComputeStep(ComputeStep<T> cs, int N_out, b
 	data_out = new std::list<T*>;
 	T *out;
 	if (on_device) {
-		cudaMallocT<T>(out, N_out);
+		//cudaMallocT<T>(out, N_out);
 	} else {
 		out = (T*)malloc(N_out * sizeof(T));
 	}

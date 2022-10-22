@@ -7,7 +7,7 @@
 
 int main (int argc, char *argv[]) {
 	if (argc > 1) {
-		memoryManager *mm = new memoryManager();
+		memoryManager *mm = new memoryManager(false);
 
 		int N = atoi(argv[1]);
 		int *data_in = (int*)malloc(N * sizeof(int));

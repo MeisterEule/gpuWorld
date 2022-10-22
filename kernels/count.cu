@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "compute_step.hpp"
+#include "memoryManager.hpp"
 #include "grid_utils.h"
 
 #define SAFE_CUDA(apiFuncCall)                                          \
@@ -39,8 +40,7 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 }
 
 
-//void countElementsInArray (compute_step_t *cs_h) {
-void countElementsInArray (ComputeStep<int> *cs_h) {
+void countElementsInArray (memoryManager *mm, ComputeStep<int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
         bool input_on_device = cs_h->input_on_device->front();
@@ -55,7 +55,7 @@ void countElementsInArray (ComputeStep<int> *cs_h) {
 	if (input_on_device) {
 		data_d = data_in;
 	} else {
-		cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
+		mm->deviceAllocate<int>(data_d, n_data_in);
 	 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 
@@ -63,7 +63,7 @@ void countElementsInArray (ComputeStep<int> *cs_h) {
 	if (output_on_device) {
 		count_d = data_out;
 	} else {
-		cudaMalloc((void**)&count_d, n_data_out * sizeof(int));
+		mm->deviceAllocate<int>(count_d, n_data_out);
 	}
 	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
@@ -87,7 +87,6 @@ void computeAverageOfArray (ComputeStep<int> *cs_h) {
 
 	int n_threads, n_blocks;
 	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
- 	if (n_blocks > 1) printf ("Warning: Only one block for reduction supported\n");	
 
 	int *data_d;
 	if (input_on_device) {
@@ -98,7 +97,7 @@ void computeAverageOfArray (ComputeStep<int> *cs_h) {
 	}
 
 	int *count_d;
-	if (cs_h->output_on_device) {
+	if (output_on_device) {
 		count_d = data_out;
 	} else {
 		cudaMalloc((void**)&count_d, n_data_out * sizeof(int));

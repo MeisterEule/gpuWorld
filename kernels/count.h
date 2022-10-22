@@ -1,11 +1,11 @@
 #ifndef COUNT_H
 #define COUNT_H
 
+#include "memoryManager.hpp"
 #include "compute_step.hpp"
 
-void countElementsInArray (ComputeStep<int> *cs);
-int *countElementsInArray (char *data, int n_data);
+void countElementsInArray (memoryManager *mm, ComputeStep<int> *cs);
+int *countElementsInArray (memoryManager *mm, ComputeStep<char> *cs);
 
-void computeAverageOfArray (ComputeStep<int> *cs);
 
 #endif
