@@ -1,3 +1,6 @@
+#ifndef TIMERS_HPP
+#define TIMERS_HPP
+
 #include <chrono>
 #include <iostream>
 
@@ -34,3 +37,4 @@ class Timer {
 		}
 };
 
+#endif
