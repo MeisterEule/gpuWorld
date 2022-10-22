@@ -1,11 +1,11 @@
 #ifndef COUNT_H
 #define COUNT_H
 
-#include "compute_step.h"
+#include "compute_step.hpp"
 
-void countElementsInArray (ComputeStepInt *cs);
+void countElementsInArray (ComputeStep<int> *cs);
 int *countElementsInArray (char *data, int n_data);
 
-void computeAverageOfArray (ComputeStepInt *cs);
+void computeAverageOfArray (ComputeStep<int> *cs);
 
 #endif

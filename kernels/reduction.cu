@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "compute_step.h"
+#include "compute_step.hpp"
 #include "grid_utils.h"
 
 #define BLOCK_DIM 1024
@@ -22,7 +22,7 @@ __global__ void segmented_sum_reduction_kernel (int *input, int *output) {
         if (ltid == 0) atomicAdd(&(output[0]), input_s[0]);
 }
 
-int computeArraySum (ComputeStepInt *cs_h) {
+int computeArraySum (ComputeStep<int> *cs_h) {
 	cs_h->Pad(2 * BLOCK_DIM);
 
 	int n_data_in = cs_h->n_data_in->front();

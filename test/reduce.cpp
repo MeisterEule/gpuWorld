@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "compute_step.h"
+#include "compute_step.hpp"
 #include "reduction.h"
 
 int doIteration (int N) {
-	ComputeStepInt cs (N, 1, false, false);
+	ComputeStep<int> cs (N, 1, false, false);
         int *data_in = (int*)malloc(N * sizeof(int));
 	for (int i = 0; i < N; i++) {
 		data_in[i] = 1;

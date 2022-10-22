@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "compute_step.h"
+#include "compute_step.hpp"
 #include "grid_utils.h"
 
 #define SAFE_CUDA(apiFuncCall)                                          \
@@ -40,7 +40,7 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 
 
 //void countElementsInArray (compute_step_t *cs_h) {
-void countElementsInArray (ComputeStepInt *cs_h) {
+void countElementsInArray (ComputeStep<int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
         bool input_on_device = cs_h->input_on_device->front();
@@ -76,7 +76,7 @@ void countElementsInArray (ComputeStepInt *cs_h) {
 	if (!output_on_device) cudaFree(count_d);
 }
 
-void computeAverageOfArray (ComputeStepInt *cs_h) {
+void computeAverageOfArray (ComputeStep<int> *cs_h) {
 	// TODO: Check if N_out = 1
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
