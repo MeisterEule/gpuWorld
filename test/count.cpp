@@ -14,7 +14,7 @@ int main (int argc, char *argv[]) {
 		for (int i = 0; i < N; i++) { 
 			data_in[i] = i;
 		}
-	        ComputeStep<int> cs1 (mm, N, N, false, false, data_in);
+	        ComputeStep<int,int> cs1 (mm, N, N, false, false, data_in);
 
 		
 		countElementsInArray (mm, &cs1);

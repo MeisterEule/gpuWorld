@@ -11,7 +11,7 @@
 
 #include "memoryManager.hpp"
 
-template<typename T> class ComputeStep 
+template<typename T, typename U> class ComputeStep 
 {
 	public:
 	   memoryManager *mm;
@@ -20,11 +20,11 @@ template<typename T> class ComputeStep
 	   std::list<bool> *input_on_device;
 	   std::list<bool> *output_on_device;
 	   std::list<T*> *data_in;
-	   std::list<T*> *data_out;
+	   std::list<U*> *data_out;
 
 	   ComputeStep (memoryManager *mm, int N_in, int N_out, bool i1, bool i2);
 	   ComputeStep (memoryManager *mm, int N_in, int N_out, bool i1, bool i2, T* data);
-	   ComputeStep (memoryManager *mm, ComputeStep<T> cs, int N_out, bool on_device);
+	   ComputeStep (memoryManager *mm, ComputeStep<T,U> cs, int N_out, bool on_device);
 
 	   void SetInFirst (T* data);
 	   void Pad (int padding_base);
@@ -32,7 +32,7 @@ template<typename T> class ComputeStep
 	   void PrintOut ();
 };
 
-template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2) {
+template<typename T, typename U> ComputeStep<T,U>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2) {
 	mm = mm;
      	n_data_in = new std::list<int>;
         n_data_out = new std::list<int>;
@@ -44,27 +44,26 @@ template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, in
         output_on_device->push_back(i2);
 
 	data_in = new std::list<T*>;
-	data_out = new std::list<T*>;
-	T *in, *out;
+	data_out = new std::list<U*>;
+	T *in;
+	U *out;
 	if (i1) {
-		//cudaMallocT<T>(in, N_in);
-		mm->deviceAllocate<int> (in, N_in);
+		mm->deviceAllocate<T> (in, N_in);
 	} else {
 		in = (T*)malloc(N_in * sizeof(T));
 	}
 
-	if (i1) {
-		//cudaMallocT<T>(out, N_out);
-		mm->deviceAllocate<int> (out, N_out);
+	if (i2) {
+		mm->deviceAllocate<U> (out, N_out);
 	} else {
-		out = (T*)malloc(N_out * sizeof(T));
+		out = (U*)malloc(N_out * sizeof(U));
 	}
 
 	data_in->push_back(in);
 	data_out->push_back(out);
 }
 
-template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2, T *data) {
+template<typename T, typename U> ComputeStep<T,U>::ComputeStep(memoryManager *mm, int N_in, int N_out, bool i1, bool i2, T *data) {
 	mm = mm;
 	n_data_in = new std::list<int>;
         n_data_out = new std::list<int>;
@@ -76,28 +75,27 @@ template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, int N_in, in
         output_on_device->push_back(i2);
 
 	data_in = new std::list<T*>;
-	data_out = new std::list<T*>;
-	T *in, *out;
+	data_out = new std::list<U*>;
+	T *in;
+	U *out;
 	if (i1) {
-		//cudaMallocT<T>(in, N_in);
-		mm->deviceAllocate<int> (in, N_in);
+		mm->deviceAllocate<T> (in, N_in);
 		cudaMemcpy(in, data, N_in * sizeof(T), cudaMemcpyHostToDevice);
 	} else {
 		in = data;
 	}
 
-	if (i1) {
-		//cudaMallocT<T>(out, N_out);
-		mm->deviceAllocate<int> (out, N_out);
+	if (i2) {
+		mm->deviceAllocate<U> (out, N_out);
 	} else {
-		out = (T*)malloc(N_out * sizeof(T));
+		out = (U*)malloc(N_out * sizeof(U));
 	}
 
 	data_in->push_back(in);
 	data_out->push_back(out);
 }
 
-template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, ComputeStep<T> cs, int N_out, bool on_device) {
+template<typename T, typename U> ComputeStep<T,U>::ComputeStep(memoryManager *mm, ComputeStep<T,U> cs, int N_out, bool on_device) {
 	mm = mm;
      	n_data_in = cs.n_data_out;
    	input_on_device = cs.output_on_device;
@@ -107,22 +105,22 @@ template<typename T> ComputeStep<T>::ComputeStep(memoryManager *mm, ComputeStep<
    	output_on_device->push_back(on_device);
 
 	data_in = cs.data_out;
-	data_out = new std::list<T*>;
-	T *out;
+	data_out = new std::list<U*>;
+	U *out;
 	if (on_device) {
-		//cudaMallocT<T>(out, N_out);
+		mm->deviceAllocate<U> (out, N_out);
 	} else {
-		out = (T*)malloc(N_out * sizeof(T));
+		out = (U*)malloc(N_out * sizeof(U));
 	}
 	data_out->push_back(out);
 }
 
-template<typename T> void ComputeStep<T>::SetInFirst (T *data) {
+template<typename T, typename U> void ComputeStep<T,U>::SetInFirst (T *data) {
    int *this_data = data_in->front();
    this_data = data;
 }
 
-template<typename T> void ComputeStep<T>::Pad (int padding_base) {
+template<typename T, typename U> void ComputeStep<T,U>::Pad (int padding_base) {
    std::list<int>::iterator it_n = n_data_in->begin();
    std::list<bool>::iterator it_od = input_on_device->begin();
    typename std::list<T*>::iterator it_data = data_in->begin();  // I have no idea why it requires 'typename'
@@ -144,42 +142,34 @@ template<typename T> void ComputeStep<T>::Pad (int padding_base) {
    }
 }
 
-template<typename T> void ComputeStep<T>::PrintIn () {
-   //printf ("In States: %d\n", n_data_in->size());  
+template<typename T, typename U> void ComputeStep<T,U>::PrintIn () {
    std::cout << "In States: " << n_data_in->size() << std::endl;
    std::list<int>::iterator it_n = n_data_in->begin();
    typename std::list<T*>::iterator it_data = data_in->begin();
 
    int n_states = 0;
    for (; it_n != n_data_in->end() && it_data != data_in->end(); ++it_n, ++it_data) {
-      //printf ("%d: ", n_states++);
       std::cout << n_states++;
       T *tmp = *it_data;
       for (int i = 0; i < *it_n; i++) {
-	      //printf ("%d ", tmp[i]);
 	      std::cout << tmp[i] << " ";
       }
-      //printf ("\n");
       std::cout << std::endl;
    }
 }
 
-template<typename T> void ComputeStep<T>::PrintOut () {
-   //printf ("Out States: %d\n", n_data_in->size());  
+template<typename T, typename U> void ComputeStep<T,U>::PrintOut () {
    std::cout << "Out States: " << n_data_out->size() << std::endl;
    std::list<int>::iterator it_n = n_data_out->begin();
-   typename std::list<T*>::iterator it_data = data_out->begin();
+   typename std::list<U*>::iterator it_data = data_out->begin();
 
    int n_states = 0;
    for (; it_n != n_data_out->end() && it_data != data_out->end(); ++it_n, ++it_data) {
-      //printf ("%d: ", n_states++);
       std::cout << n_states++;
-      T *tmp = *it_data;
+      U *tmp = *it_data;
       for (int i = 0; i < *it_n; i++) {
-	      //printf ("%d ", tmp[i]);
 	      std::cout << tmp[i] << " ";
       }
-      //printf ("\n");
       std::cout << std::endl;
    }
 }

@@ -17,7 +17,7 @@ int main (int argc, char *argv[]) {
 	Timer tt("CreateNumbers", "ms");
 	initRNG (DEFAULT_SEED, N);
 	//ComputeStep<int> cs_numbers_to_count (mm, N, N, false, false, generateRandomArrayInt (N, 0, N-1));
-	ComputeStep<int> cs_numbers_to_count (mm, N, N, false, false, generateArrayOfOnesCPU<int> (N));
+	ComputeStep<int,int> cs_numbers_to_count (mm, N, N, false, false, generateArrayOfOnesCPU<int> (N));
 
 	tt.stop();
 
@@ -25,7 +25,7 @@ int main (int argc, char *argv[]) {
 	countElementsInArray (mm, &cs_numbers_to_count);
         tt.stop();
 
-        ComputeStep<int> cs_count_to_average (mm, cs_numbers_to_count, 1, false);
+        ComputeStep<int,int> cs_count_to_average (mm, cs_numbers_to_count, 1, false);
 
 	tt.reset("ComputeSum");
 	int sum = computeArraySum (mm, &cs_count_to_average);

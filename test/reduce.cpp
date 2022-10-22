@@ -13,7 +13,7 @@ int doIteration (int N) {
 	for (int i = 0; i < N; i++) {
 		data_in[i] = 1;
 	}
-	ComputeStep<int> cs (mm, N, 1, false, false, data_in);
+	ComputeStep<int,int> cs (mm, N, 1, false, false, data_in);
 
 	int sum = computeArraySum (mm, &cs);
 

@@ -23,7 +23,7 @@ __global__ void segmented_sum_reduction_kernel (int *input, int *output) {
         if (ltid == 0) atomicAdd(&(output[0]), input_s[0]);
 }
 
-int computeArraySum (memoryManager *mm, ComputeStep<int> *cs_h) {
+int computeArraySum (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	cs_h->Pad(2 * BLOCK_DIM);
 
 	int n_data_in = cs_h->n_data_in->front();

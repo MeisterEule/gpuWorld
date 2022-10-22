@@ -23,7 +23,7 @@ __global__ void count_elements_in_array_kernel_int (int *data, int *count, int n
 	atomicAdd(&(count[data[tid]]), 1);
 }
 
-__global__ void count_elements_in_array_kernel (char *data, int *count, int n_data) {
+__global__ void count_elements_in_array_kernel_char (char *data, int *count, int n_data) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
 	int alphabet_position = data[tid] - 'a';
@@ -40,7 +40,7 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 }
 
 
-void countElementsInArray (memoryManager *mm, ComputeStep<int> *cs_h) {
+void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
         bool input_on_device = cs_h->input_on_device->front();
@@ -76,62 +76,43 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int> *cs_h) {
 	if (!output_on_device) cudaFree(count_d);
 }
 
-void computeAverageOfArray (ComputeStep<int> *cs_h) {
-	// TODO: Check if N_out = 1
+int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
+	if (n_data_out != 26) {
+		printf ("Character count output must have 26 elements!\n");
+		return NULL;
+	}
         bool input_on_device = cs_h->input_on_device->front();
 	bool output_on_device = cs_h->input_on_device->front();
-	int *data_in = cs_h->data_in->front();
+	char *data_in = cs_h->data_in->front();
         int *data_out = cs_h->data_out->front();
-
 	int n_threads, n_blocks;
 	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
 
-	int *data_d;
+	char *data_d;
 	if (input_on_device) {
 		data_d = data_in;
 	} else {
-		cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
-		cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
+		mm->deviceAllocate<char>(data_d, n_data_in);
+	 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(char), cudaMemcpyHostToDevice);
 	}
 
 	int *count_d;
 	if (output_on_device) {
 		count_d = data_out;
 	} else {
-		cudaMalloc((void**)&count_d, n_data_out * sizeof(int));
+		mm->deviceAllocate<int>(count_d, n_data_out);
 	}
 	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
-	avg_atomic_kernel<<<n_blocks,n_threads>>>(data_d, count_d, n_data_in);
+	count_elements_in_array_kernel_char<<<n_blocks,n_threads>>>(data_d, count_d, n_data_in);
 
-	if (!cs_h->output_on_device) {
-	   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
-	}
-	if (!input_on_device) cudaFree(data_d);
-	if (!output_on_device) cudaFree(count_d);
-}
+	int *count_h = (int*)malloc(26 * sizeof(int));
 
-int *countElementsInArray (char *data, int n_data) {
-	int n_threads, n_blocks;
-	getGridDimension1D (n_data, &n_blocks, &n_threads);
-
-	int *count_h = (int*)malloc(n_data * sizeof(int));
-	memset (count_h, 0, 26 * sizeof(int));
-
-	char *data_d;
-        int *count_d;
-	cudaMalloc((void**)&data_d, n_data * sizeof(char));
-	cudaMalloc((void**)&count_d, 26 * sizeof(int));
-	cudaMemcpy(data_d, data, n_data * sizeof(char), cudaMemcpyHostToDevice);
-	cudaMemset(count_d, 0, n_data * sizeof(int));
-
-	count_elements_in_array_kernel<<<n_blocks,n_threads>>>(data_d, count_d, n_data);
-
-	cudaMemcpy(count_d, count_h, n_data * sizeof(int), cudaMemcpyDeviceToHost);
-	cudaFree(count_d);
-	cudaFree(data_d);
+	if (!output_on_device) cudaMemcpy(count_d, count_h, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
+	if (!input_on_device) cudaFree(count_d);
+	if (!output_on_device) cudaFree(data_d);
 
 	return count_h;
 }
