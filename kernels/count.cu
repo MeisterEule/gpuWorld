@@ -71,8 +71,8 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	if (!output_on_device) {
 	   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	}
-	if (!input_on_device) mm->deviceFree(data_d, (uint64_t)&data_d);
-	if (!output_on_device) mm->deviceFree(count_d, (uint64_t)&count_d);
+	if (!input_on_device) mm->deviceFree<int>(data_d);
+	if (!output_on_device) mm->deviceFree<int>(count_d);
 }
 
 int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
@@ -110,8 +110,8 @@ int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
 	int *count_h = (int*)malloc(26 * sizeof(int));
 
 	if (!output_on_device) cudaMemcpy(count_h, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
-	if (!input_on_device) mm->deviceFree(count_d, (uint64_t)&count_d);
-	if (!output_on_device) mm->deviceFree(data_d, (uint64_t)&data_d);
+	if (!input_on_device) mm->deviceFree<int>(count_d);
+	if (!output_on_device) mm->deviceFree<char>(data_d);
 
 	return count_h;
 }

@@ -16,7 +16,7 @@ typedef struct {
 
 class memoryManager {
 	public:
-		std::map<uint64_t,mem_registry_t> active_fields; //btw, if <map> is not included, the error message is "qualitified name is not allowed"....
+		std::map<uint64_t,mem_registry_t> active_fields;
 		size_t total_free_host_memory;
 		size_t used_host_memory;
 		size_t total_device_memory;
@@ -25,10 +25,7 @@ class memoryManager {
 
 		memoryManager (bool verb);
 		template<class T> cudaError_t deviceAllocate(T *&var, size_t count, char *name = "unnamed");
-		//void deviceFree (void *var);
-		void deviceFree (void *var, uint64_t var_addr);
-		// Implementing deviceFree requires us to better keep track in detail
-		// which fields are allocated. Or we just check the device memory after freeing (which takes much more time).
+		template<class T> void deviceFree (T *&var);
 		void status();
 };
 
@@ -45,7 +42,7 @@ inline memoryManager::memoryManager (bool verb) {
 	verbose = verb;
 }
 
-template<typename T> cudaError_t memoryManager::deviceAllocate (T *&var, size_t count, char *name) {
+template<class T> cudaError_t memoryManager::deviceAllocate (T *&var, size_t count, char *name) {
 	size_t required_memory = count * sizeof(T);
 	mem_registry_t m;
 	m.name = name;
@@ -62,9 +59,10 @@ template<typename T> cudaError_t memoryManager::deviceAllocate (T *&var, size_t 
 	return ce;
 }
 
-inline void memoryManager::deviceFree (void *var, uint64_t var_addr) {
-	if (verbose) printf ("Freeing 0x%lx\n", var_addr);
-	cudaError_t ce = cudaFree(var);
+template<class T> void memoryManager::deviceFree (T *&var) {
+	uint64_t var_addr = (uint64_t)&var;
+	if (verbose) printf ("Freeing 0x%lx (%s)\n", var_addr, active_fields[var_addr].name);
+	cudaFree(var);
 	used_device_memory -= active_fields[var_addr].this_memory;
 	active_fields.erase(var_addr);
 }

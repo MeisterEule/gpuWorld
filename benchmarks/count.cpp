@@ -18,8 +18,9 @@ int main (int argc, char *argv[]) {
 	cudaRNG *rng = new cudaRNG (1024 * 1024, DEFAULT_SEED);
 	rng->initRNG (mm, N);
 	ComputeStep<int,int> cs_numbers_to_count (mm, N, N, false, false, rng->generate (mm, N, 0, N-1));
-
 	tt.stop();
+
+	rng->freeRNG(mm);
 
 	tt.reset("countNumbers");
 	countElementsInArray (mm, &cs_numbers_to_count);

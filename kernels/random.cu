@@ -49,8 +49,12 @@ int *cudaRNG::generate (memoryManager *mm, int N_numbers, int min, int max) {
 
    fill_array_kernel<<<n_blocks,n_threads>>>(rng_data_d, N_numbers, min, max, gen_stride, deviceCurandStates);
    cudaMemcpy(rng_data_h, rng_data_d, N_numbers * sizeof(int), cudaMemcpyDeviceToHost);
-   mm->deviceFree (rng_data_d, (uint64_t)&rng_data_d);
+   mm->deviceFree (rng_data_d);
    return rng_data_h;
+}
+
+void cudaRNG::freeRNG (memoryManager *mm) {
+   mm->deviceFree<curandState>(deviceCurandStates);
 }
 
 void cudaRNG::printStatus () {

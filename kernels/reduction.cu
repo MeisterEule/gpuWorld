@@ -55,6 +55,7 @@ int computeArraySum (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	segmented_sum_reduction_kernel<<<n_blocks,n_threads,n_threads * sizeof(int)>>>(data_d, sum_d);
 	int sum;
 	cudaMemcpy (&sum, sum_d, sizeof(int), cudaMemcpyDeviceToHost);
-	if (!input_on_device) cudaFree(data_d);
+	if (!input_on_device) mm->deviceFree<int>(data_d);
+	if (!output_on_device) mm->deviceFree<int>(sum_d);
 	return sum;
 }
