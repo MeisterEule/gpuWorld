@@ -26,9 +26,8 @@ __global__ void count_elements_in_array_kernel_int (int *data, int *count, int n
 __global__ void count_elements_in_array_kernel_char (char *data, int *count, int n_data) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
-	int alphabet_position = data[tid] - 'a';
-	if (alphabet_position >= 0 && alphabet_position < 26) {
-	   atomicAdd(&(count[alphabet_position]), 1);
+	if (data[tid] >= 0 && data[tid] < 128) {
+	   atomicAdd(&(count[data[tid]]), 1);
 	}
 }
 
@@ -79,8 +78,8 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
 	int n_data_out = cs_h->n_data_out->front();
-	if (n_data_out != 26) {
-		printf ("Character count output must have 26 elements!\n");
+	if (n_data_out != 128) {
+		printf ("Character count output must have 128 elements (Nr. of symbols in ASCII).\n");
 		return NULL;
 	}
         bool input_on_device = cs_h->input_on_device->front();
@@ -110,7 +109,7 @@ int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
 
 	int *count_h = (int*)malloc(26 * sizeof(int));
 
-	if (!output_on_device) cudaMemcpy(count_d, count_h, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
+	if (!output_on_device) cudaMemcpy(count_h, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	if (!input_on_device) cudaFree(count_d);
 	if (!output_on_device) cudaFree(data_d);
 

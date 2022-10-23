@@ -10,6 +10,6 @@ count_SOURCES = count.cpp
 count_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
 count_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
 
-count_chars_SOURCES = count.cpp
+count_chars_SOURCES = count_chars.cpp
 count_chars_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
 count_chars_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
