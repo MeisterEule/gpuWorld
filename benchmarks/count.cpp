@@ -15,9 +15,9 @@ int main (int argc, char *argv[]) {
 	int N = argc > 1 ? atoi(argv[1]) : N_DEFAULT;
 	memoryManager *mm = new memoryManager(true);
 	Timer tt("CreateNumbers", "ms");
-	initRNG (DEFAULT_SEED, N);
-	//ComputeStep<int> cs_numbers_to_count (mm, N, N, false, false, generateRandomArrayInt (N, 0, N-1));
-	ComputeStep<int,int> cs_numbers_to_count (mm, N, N, false, false, generateArrayOfOnesCPU<int> (N));
+	cudaRNG *rng = new cudaRNG (1024 * 1024, DEFAULT_SEED);
+	rng->initRNG (mm, N);
+	ComputeStep<int,int> cs_numbers_to_count (mm, N, N, false, false, rng->generate (mm, N, 0, N-1));
 
 	tt.stop();
 

@@ -3,9 +3,25 @@
 
 #include <stdint.h>
 
+#include <curand_kernel.h>
+
+#include "memoryManager.hpp"
+
 #define DEFAULT_SEED 12345
 
-void initRNG (uint64_t seed, int n_Numbers);
-int *generateRandomArrayInt (int N, int min, int max);
+class cudaRNG {
+	public:
+		curandState *deviceCurandStates;
+		size_t reserved_bytes;
+		int gen_stride;
+		int n_threads;
+		int n_blocks;
+		uint64_t seed;
+
+		cudaRNG (size_t bytes, uint64_t init_seed);
+		void initRNG (memoryManager *mm, int N_numbers);
+		int *generate (memoryManager *mm, int N_numbers, int min, int max);
+		void printStatus ();
+};
 
 #endif

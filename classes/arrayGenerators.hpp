@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+#include "memoryManager.hpp"
 #include "random.h"
 
 template<typename T> T *generateArrayOfOnesCPU (int N) {
@@ -13,8 +14,8 @@ template<typename T> T *generateArrayOfOnesCPU (int N) {
 	return x;
 }
 
-inline int *generateRandomNumbersGPU (int N, int min, int max) {
-   return generateRandomArrayInt (N, min, max);
-}
+//inline int *generateRandomNumbersGPU (memoryManager *mm, int N, int min, int max) {
+//   return generateRandomArrayInt (mm, N, min, max);
+//}
 
 #endif
