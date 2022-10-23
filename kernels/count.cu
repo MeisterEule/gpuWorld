@@ -54,7 +54,7 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	if (input_on_device) {
 		data_d = data_in;
 	} else {
-		mm->deviceAllocate<int>(data_d, n_data_in);
+		mm->deviceAllocate<int>(data_d, n_data_in, "countInput");
 	 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 
@@ -62,7 +62,7 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	if (output_on_device) {
 		count_d = data_out;
 	} else {
-		mm->deviceAllocate<int>(count_d, n_data_out);
+		mm->deviceAllocate<int>(count_d, n_data_out, "countOutput");
 	}
 	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
@@ -71,8 +71,8 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	if (!output_on_device) {
 	   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	}
-	if (!input_on_device) cudaFree(data_d);
-	if (!output_on_device) cudaFree(count_d);
+	if (!input_on_device) mm->deviceFree(data_d, (uint64_t)&data_d);
+	if (!output_on_device) mm->deviceFree(count_d, (uint64_t)&count_d);
 }
 
 int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
@@ -93,7 +93,7 @@ int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
 	if (input_on_device) {
 		data_d = data_in;
 	} else {
-		mm->deviceAllocate<char>(data_d, n_data_in);
+		mm->deviceAllocate<char>(data_d, n_data_in, "countInput");
 	 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(char), cudaMemcpyHostToDevice);
 	}
 
@@ -101,7 +101,7 @@ int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
 	if (output_on_device) {
 		count_d = data_out;
 	} else {
-		mm->deviceAllocate<int>(count_d, n_data_out);
+		mm->deviceAllocate<int>(count_d, n_data_out, "countOutput");
 	}
 	cudaMemset(count_d, 0, n_data_out * sizeof(int));
 
@@ -110,8 +110,8 @@ int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {
 	int *count_h = (int*)malloc(26 * sizeof(int));
 
 	if (!output_on_device) cudaMemcpy(count_h, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
-	if (!input_on_device) cudaFree(count_d);
-	if (!output_on_device) cudaFree(data_d);
+	if (!input_on_device) mm->deviceFree(count_d, (uint64_t)&count_d);
+	if (!output_on_device) mm->deviceFree(data_d, (uint64_t)&data_d);
 
 	return count_h;
 }

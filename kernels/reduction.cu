@@ -41,16 +41,14 @@ int computeArraySum (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	if (input_on_device) {
 		data_d = data_in;
 	} else {
-		//cudaMalloc((void**)&data_d, n_data_in * sizeof(int));
-		mm->deviceAllocate(data_d, n_data_in);
+		mm->deviceAllocate(data_d, n_data_in, "reduceInput");
 		cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
 	}
 	int *sum_d;
 	if (output_on_device) {
 		sum_d = data_out;
 	} else {
-		//cudaMalloc((void**)&sum_d, n_data_out * sizeof(int));
-	 	mm->deviceAllocate(sum_d, n_data_out);
+	 	mm->deviceAllocate(sum_d, n_data_out, "reduceOutput");
 		cudaMemset(sum_d, 0, n_data_out * sizeof(int));
 	}
 

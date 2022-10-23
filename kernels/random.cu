@@ -38,17 +38,18 @@ void cudaRNG::initRNG (memoryManager *mm, int N_numbers) {
 	getGridDimension1D (n_curand_states, &n_blocks, &n_threads);
 	gen_stride = N_numbers / n_curand_states;
 	if (gen_stride == 0) gen_stride = 1;
-        mm->deviceAllocate<curandState>(deviceCurandStates, n_threads * n_blocks);
+        mm->deviceAllocate<curandState>(deviceCurandStates, n_threads * n_blocks, "curandStates");
         setup_curand_kernel<<<n_blocks,n_threads>>>(deviceCurandStates, seed);
 }
 
 int *cudaRNG::generate (memoryManager *mm, int N_numbers, int min, int max) {
    int *rng_data_h = (int*)malloc(N_numbers * sizeof(int));
    int *rng_data_d;
-   mm->deviceAllocate<int> (rng_data_d, N_numbers);
+   mm->deviceAllocate<int> (rng_data_d, N_numbers, "devRandomNumbers");
+
    fill_array_kernel<<<n_blocks,n_threads>>>(rng_data_d, N_numbers, min, max, gen_stride, deviceCurandStates);
    cudaMemcpy(rng_data_h, rng_data_d, N_numbers * sizeof(int), cudaMemcpyDeviceToHost);
-   cudaFree (rng_data_d);
+   mm->deviceFree (rng_data_d, (uint64_t)&rng_data_d);
    return rng_data_h;
 }
 
