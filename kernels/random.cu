@@ -20,8 +20,8 @@ __global__ void fill_array_kernel (int *data, int N, int min, int max, int strid
 
 	tid *= stride;
 	for (int i = 0; i < stride && tid + i < N; i++) {
-	   //printf ("Fill: %d + %d = %d\n", tid, i, tid + i); 
- 	   data[tid + i] = min + (int)(curand_uniform(&localState) * (max - min));
+	   double f = (double)curand_uniform(&localState);
+ 	   data[tid + i] = min + (int)(f * (max - min));
 	}
 }
 
