@@ -21,6 +21,7 @@ class cudaRNG {
 		cudaRNG (size_t bytes, uint64_t init_seed);
 		void initRNG (memoryManager *mm, int N_numbers);
 		int *generate (memoryManager *mm, int N_numbers, int min, int max);
+		float *generateRandomMatrix (memoryManager *mm, int N_numbers, float nonzero_ratio);
 		void freeRNG (memoryManager *mm);
 		void printStatus ();
 };
