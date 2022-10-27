@@ -15,13 +15,28 @@ __global__ void setup_curand_kernel (curandState *state, uint64_t seed) {
 
 __global__ void fill_array_kernel (int *data, int N, int min, int max, int stride, curandState *globalState) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	if (tid >= N) return;
+	int stid = stride * tid;
+	if (stid + stride > N) return;
 	curandState localState = globalState[tid];
 
-	tid *= stride;
-	for (int i = 0; i < stride && tid + i < N; i++) {
+	for (int i = 0; i < stride && stid + i < N; i++) {
 	   double f = (double)curand_uniform(&localState);
- 	   data[tid + i] = min + (int)(f * (max - min));
+ 	   data[stid + i] = min + (int)(f * (max - min));
+	}
+}
+
+__global__ void fill_random_matrix_kernel (float *M, int N, float nonzero_ratio, int stride, curandState *globalState) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	int stid = stride * tid;
+	if (stid + stride > N) return;
+	curandState localState = globalState[tid];
+
+	for (int i = 0; i < stride && stid + i < N; i++) {
+		if (curand_uniform(&localState) < nonzero_ratio) {
+			M[stid + i] = curand_uniform(&localState);
+		} else {
+			M[stid + i] = 0;
+		}
 	}
 }
 
@@ -36,7 +51,7 @@ cudaRNG::cudaRNG (size_t bytes, uint64_t init_seed) {
 void cudaRNG::initRNG (memoryManager *mm, int N_numbers) {
 	int n_curand_states = reserved_bytes / sizeof(curandState) + 1;
 	getGridDimension1D (n_curand_states, &n_blocks, &n_threads);
-	gen_stride = N_numbers / n_curand_states;
+	gen_stride = N_numbers / n_curand_states + 1;
 	if (gen_stride == 0) gen_stride = 1;
         mm->deviceAllocate<curandState>(deviceCurandStates, n_threads * n_blocks, "curandStates");
         setup_curand_kernel<<<n_blocks,n_threads>>>(deviceCurandStates, seed);
@@ -51,6 +66,18 @@ int *cudaRNG::generate (memoryManager *mm, int N_numbers, int min, int max) {
    cudaMemcpy(rng_data_h, rng_data_d, N_numbers * sizeof(int), cudaMemcpyDeviceToHost);
    mm->deviceFree (rng_data_d);
    return rng_data_h;
+}
+
+float *cudaRNG::generateRandomMatrix (memoryManager *mm, int N_numbers, float nonzero_ratio) {
+	float *matrix_h = (float*)malloc(N_numbers * sizeof(float));
+	float *matrix_d;
+	mm->deviceAllocate<float> (matrix_d, N_numbers, "matrixRandomNumbers");
+	cudaMemset(matrix_d, 0, N_numbers * sizeof(float));
+
+	fill_random_matrix_kernel<<<n_blocks,n_threads>>> (matrix_d, N_numbers, nonzero_ratio, gen_stride, deviceCurandStates);
+	cudaMemcpy(matrix_h, matrix_d, N_numbers * sizeof(float), cudaMemcpyDeviceToHost);
+	mm->deviceFree (matrix_d);
+	return matrix_h;
 }
 
 void cudaRNG::freeRNG (memoryManager *mm) {

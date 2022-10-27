@@ -2,7 +2,8 @@ bin_PROGRAMS = reduce \
 	       count \
 	       count_chars \
 	       scan \
-	       random
+	       random \
+	       random_matrix
 
 reduce_SOURCES = reduce.cpp
 reduce_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
@@ -19,6 +20,11 @@ count_chars_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
 random_SOURCES = random.cpp
 random_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
 random_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
+random_matrix_SOURCES = random_matrix.cpp
+random_matrix_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
+random_matrix_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
 
 scan_SOURCES = scan.cpp
 scan_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes

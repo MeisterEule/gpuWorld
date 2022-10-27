@@ -38,6 +38,57 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 	__syncthreads();
 }
 
+__global__ void count_nonzero_kernel (int *data, int *count, int n_data) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid >= n_data) return;
+	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
+}
+
+__global__ void count_nonzero_kernel (float *data, int *count, int n_data) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid >= n_data) return;
+	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
+}
+
+
+int countNonzeros (memoryManager *mm, float *data, int n_data, bool input_on_device) {
+	int n_threads, n_blocks;
+	getGridDimension1D (n_data, &n_blocks, &n_threads);
+
+	float *data_d;
+	if (input_on_device) {
+		data_d = data;
+	} else {
+		mm->deviceAllocate<float>(data_d, n_data, "countInput");
+	 	cudaMemcpy(data_d, data, n_data * sizeof(int), cudaMemcpyHostToDevice);
+	}
+
+	int *count_d;
+        mm->deviceAllocate<int>(count_d, 1, "countOutput");
+	cudaMemset(count_d, 0, sizeof(int));
+	
+	count_nonzero_kernel<<<n_blocks,n_threads>>>(data_d, count_d, n_data);
+
+	int count_h;
+	cudaMemcpy (&count_h, count_d, sizeof(int), cudaMemcpyDeviceToHost);
+
+	if (!input_on_device) mm->deviceFree<float>(data_d);
+	mm->deviceFree<int>(count_d);
+
+	return count_h;
+}
+
+
+
+int countNonzeros (memoryManager *mm, ComputeStep<float,int> *cs) {
+	int n_data = cs->n_data_in->front();
+	bool input_on_device = cs->input_on_device->front();
+	float *data = cs->data_in->front();
+	return countNonzeros (mm, data, n_data, input_on_device);
+}
+
+
+
 
 void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
         int n_data_in = cs_h->n_data_in->front();
