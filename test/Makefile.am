@@ -1,6 +1,7 @@
 bin_PROGRAMS = reduce \
 	       count \
 	       count_chars \
+	       scan \
 	       random
 
 reduce_SOURCES = reduce.cpp
@@ -18,4 +19,9 @@ count_chars_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
 random_SOURCES = random.cpp
 random_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
 random_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
+scan_SOURCES = scan.cpp
+scan_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
+scan_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
 

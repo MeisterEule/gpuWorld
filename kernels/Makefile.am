@@ -5,6 +5,7 @@ lib_LIBRARIES = libkernels.a
 libkernels_a_SOURCES = random.cu \
 		       count.cu \
 		       reduction.cu \
+		       scan.cu \
 		       grid_utils.cpp
 
 
