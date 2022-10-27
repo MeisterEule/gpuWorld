@@ -27,6 +27,8 @@ template<typename T, typename U> class ComputeStep
 	   ComputeStep (memoryManager *mm, ComputeStep<T,U> cs, int N_out, bool on_device);
 
 	   void SetInFirst (T* data);
+	   T *GetInFirst ();
+	   U *GetOutFirst ();
 	   void Pad (int padding_base);
 	   void PrintIn ();
 	   void PrintOut ();
@@ -116,9 +118,20 @@ template<typename T, typename U> ComputeStep<T,U>::ComputeStep(memoryManager *mm
 }
 
 template<typename T, typename U> void ComputeStep<T,U>::SetInFirst (T *data) {
-   int *this_data = data_in->front();
+   T *this_data = data_in->front();
    this_data = data;
 }
+
+template<typename T, typename U> U* ComputeStep<T,U>::GetOutFirst () {
+   U *this_data = data_out->front();
+   return this_data;
+}
+
+template<typename T, typename U> T* ComputeStep<T,U>::GetInFirst () {
+   T *this_data = data_in->front();
+   return this_data;
+}
+
 
 template<typename T, typename U> void ComputeStep<T,U>::Pad (int padding_base) {
    std::list<int>::iterator it_n = n_data_in->begin();
