@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 
+#include "types.h"
 #include "memoryManager.hpp"
 #include "spmv.hpp"
 #include "random.h"
@@ -8,7 +10,7 @@
 
 #define NONZERO_RATIO 0.5
 
-bool checkCPU (float *M, float *v, float *v_ref, int Nrows) {
+bool checkCPU (float *M, float *v, float *v_ref, LDIM Nrows) {
 	float *v_res = (float*)malloc(Nrows * sizeof(float));
 	for (int row = 0; row < Nrows; row++) {
 		v_res[row] = 0;
@@ -24,8 +26,8 @@ bool checkCPU (float *M, float *v, float *v_ref, int Nrows) {
 }
 
 int main (int argc, char *argv[]) {
-	int N = argc > 1 ? atoi(argv[1]) : 4;
-	unsigned long long n_matrix_elements = (unsigned long long)N * N;
+	LDIM N = argc > 1 ? atoll(argv[1]) : 4;
+	LDIM n_matrix_elements = N * N;
 	printf ("n_matrix_elements: %lld\n", n_matrix_elements);
 
 	memoryManager *mm = new memoryManager(true);
@@ -36,24 +38,18 @@ int main (int argc, char *argv[]) {
 	float *vector = rng->generateRandomMatrix (mm, N, 1.0);
 	rng->freeRNG(mm);
 
-	//printf ("matrix: \n");
-	//for (int row = 0; row < N; row++) {
-	//	for (int col = 0; col < N; col++) {
-	//		printf ("%5.3f ", matrix[row * N + col]);
-	//	}
-	//	printf ("\n");
-	//}
-	//printf ("input vector: \n");
-	//for (int i = 0; i < N; i++) {
-	//	printf ("%5.3f\n", vector[i]);
-	//}
 
-	float *result_gpu = spMVCoo<float> (mm, matrix, vector, N);
+	LDIM nnz = countNonzeros (mm, matrix, n_matrix_elements, false);
+	printf ("Nr. of nonzeros: %lld (%f)\n", nnz, (float)nnz / n_matrix_elements);
 
-	//printf ("output vector: \n");
-	//for (int i = 0; i < N; i++) {
-	//	printf ("%5.3f\n", result_gpu[i]);
-	//}
+	float *result_gpu;
+	if (nnz < INT_MAX) {
+		printf ("Use small spmv\n");
+		result_gpu = spMVCoo<float,int> (mm, matrix, vector, N, nnz);
+	} else {
+		printf ("Use large spmv\n");
+		result_gpu = spMVCoo<float,LDIM> (mm, matrix, vector, N, nnz);
+	}
 
 	printf ("Okay: %d\n", checkCPU (matrix, vector, result_gpu, N));
 	return 0;

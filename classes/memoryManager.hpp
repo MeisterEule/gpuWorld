@@ -8,24 +8,27 @@
 
 #include <cuda_runtime_api.h>
 
+#include "types.h"
+
 typedef struct {
 	char *name;
-	size_t this_memory;
+	LDIM this_memory;
 } mem_registry_t;
 
 
 class memoryManager {
 	public:
 		std::map<uint64_t,mem_registry_t> active_fields;
-		size_t total_free_host_memory;
-		size_t used_host_memory;
-		size_t total_device_memory;
-		size_t used_device_memory;		
+		LDIM total_free_host_memory;
+		LDIM used_host_memory;
+		LDIM total_device_memory;
+		LDIM used_device_memory;		
 		bool verbose;
 
 		memoryManager (bool verb);
-		template<class T> cudaError_t deviceAllocate(T *&var, size_t count, char *name = "unnamed");
+		template<class T> cudaError_t deviceAllocate(T *&var, LDIM count, char *name = "unnamed");
 		template<class T> void deviceFree (T *&var);
+		template<class T> bool isPossible (LDIM n);
 		void status();
 };
 
@@ -42,8 +45,8 @@ inline memoryManager::memoryManager (bool verb) {
 	verbose = verb;
 }
 
-template<class T> cudaError_t memoryManager::deviceAllocate (T *&var, size_t count, char *name) {
-	size_t required_memory = count * sizeof(T);
+template<class T> cudaError_t memoryManager::deviceAllocate (T *&var, LDIM count, char *name) {
+	LDIM required_memory = count * sizeof(T);
 	mem_registry_t m;
 	m.name = name;
 	m.this_memory = required_memory;
@@ -73,6 +76,10 @@ inline void memoryManager::status (){
 	for (; it != active_fields.end(); ++it) {
 		printf ("%s (@0x%lx): %lld B\n", it->second.name, it->first, it->second.this_memory);
 	}
+}
+
+template<class T> bool memoryManager::isPossible (LDIM n) {
+	return n * sizeof(T) < total_device_memory;
 }
 
 #endif

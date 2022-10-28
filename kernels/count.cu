@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "types.h"
 #include "compute_step.hpp"
 #include "memoryManager.hpp"
 #include "grid_utils.h"
@@ -51,7 +52,7 @@ __global__ void count_nonzero_kernel (float *data, unsigned long long *count, in
 }
 
 
-unsigned long long countNonzeros (memoryManager *mm, float *data, int n_data, bool input_on_device) {
+unsigned long long countNonzeros (memoryManager *mm, float *data, LDIM n_data, bool input_on_device) {
 	int n_threads, n_blocks;
 	getGridDimension1D (n_data, &n_blocks, &n_threads);
 
@@ -63,17 +64,17 @@ unsigned long long countNonzeros (memoryManager *mm, float *data, int n_data, bo
 	 	cudaMemcpy(data_d, data, n_data * sizeof(int), cudaMemcpyHostToDevice);
 	}
 
-	unsigned long long *count_d;
-        mm->deviceAllocate<unsigned long long>(count_d, 1, "countOutput");
-	cudaMemset(count_d, 0, sizeof(unsigned long long));
+	LDIM *count_d;
+        mm->deviceAllocate<LDIM>(count_d, 1, "countOutput");
+	cudaMemset(count_d, 0, sizeof(LDIM));
 	
 	count_nonzero_kernel<<<n_blocks,n_threads>>>(data_d, count_d, n_data);
 
-	unsigned long long count_h;
-	cudaMemcpy (&count_h, count_d, sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+	LDIM count_h;
+	cudaMemcpy (&count_h, count_d, sizeof(LDIM), cudaMemcpyDeviceToHost);
 
 	if (!input_on_device) mm->deviceFree<float>(data_d);
-	mm->deviceFree<unsigned long long>(count_d);
+	mm->deviceFree<LDIM>(count_d);
 
 	return count_h;
 }

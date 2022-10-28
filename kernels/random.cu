@@ -4,6 +4,7 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+#include "types.h"
 #include "memoryManager.hpp"
 #include "grid_utils.h"
 #include "random.h"
@@ -25,13 +26,13 @@ __global__ void fill_array_kernel (int *data, int N, int min, int max, int strid
 	}
 }
 
-__global__ void fill_random_matrix_kernel (float *M, int N, float nonzero_ratio, int stride, curandState *globalState) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
-	int stid = stride * tid;
+__global__ void fill_random_matrix_kernel (float *M, LDIM N, float nonzero_ratio, LDIM stride, curandState *globalState) {
+	LDIM tid = blockIdx.x * blockDim.x + threadIdx.x;
+	LDIM stid = stride * tid;
 	if (stid + stride > N) return;
 	curandState localState = globalState[tid];
 
-	for (int i = 0; i < stride && stid + i < N; i++) {
+	for (LDIM i = 0; i < stride && stid + i < N; i++) {
 		if (curand_uniform(&localState) < nonzero_ratio) {
 			M[stid + i] = curand_uniform(&localState);
 		} else {
@@ -68,7 +69,7 @@ int *cudaRNG::generate (memoryManager *mm, int N_numbers, int min, int max) {
    return rng_data_h;
 }
 
-float *cudaRNG::generateRandomMatrix (memoryManager *mm, int N_numbers, float nonzero_ratio) {
+float *cudaRNG::generateRandomMatrix (memoryManager *mm, LDIM N_numbers, float nonzero_ratio) {
 	float *matrix_h = (float*)malloc(N_numbers * sizeof(float));
 	float *matrix_d;
 	mm->deviceAllocate<float> (matrix_d, N_numbers, "matrixRandomNumbers");

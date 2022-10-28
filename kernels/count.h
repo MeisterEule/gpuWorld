@@ -10,9 +10,7 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs);
 
 int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs);
 
-//template <typename T> int countNonzeros (memoryManager *mm, T *data, int n_data, bool input_on_device);
-//template <typename T> int countNonzeros (memoryManager *mm, ComputeStep<T,T> *cs);
-unsigned long long countNonzeros (memoryManager *mm, float *data, int n_data, bool input_on_device);
+unsigned long long countNonzeros (memoryManager *mm, float *data, LDIM n_data, bool input_on_device);
 unsigned long long countNonzeros (memoryManager *mm, ComputeStep<float,int> *cs);
 
 

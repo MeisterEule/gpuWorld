@@ -9,6 +9,8 @@ libkernels_a_SOURCES = random.cu \
 		       spmv.cu \
 		       grid_utils.cpp
 
+libkernels_a_CXXFLAGS = -I${srcdir}/../classes
+
 
 libkernels_a_AR = $(NVCC) -lib -o
 
