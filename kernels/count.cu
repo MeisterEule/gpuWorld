@@ -39,20 +39,20 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 	__syncthreads();
 }
 
-__global__ void count_nonzero_kernel (int *data, unsigned long long *count, int n_data) {
+__global__ void count_nonzero_kernel (int *data, LDIM *count, LDIM n_data) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
 	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
 }
 
-__global__ void count_nonzero_kernel (float *data, unsigned long long *count, int n_data) {
+__global__ void count_nonzero_kernel (float *data, LDIM *count, LDIM n_data) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
 	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
 }
 
 
-unsigned long long countNonzeros (memoryManager *mm, float *data, LDIM n_data, bool input_on_device) {
+LDIM countNonzeros (memoryManager *mm, float *data, LDIM n_data, bool input_on_device) {
 	int n_threads, n_blocks;
 	getGridDimension1D (n_data, &n_blocks, &n_threads);
 

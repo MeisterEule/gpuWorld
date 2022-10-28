@@ -49,8 +49,8 @@ cudaRNG::cudaRNG (size_t bytes, uint64_t init_seed) {
 	n_blocks = 0;
 }
 
-void cudaRNG::initRNG (memoryManager *mm, int N_numbers) {
-	int n_curand_states = reserved_bytes / sizeof(curandState) + 1;
+void cudaRNG::initRNG (memoryManager *mm, LDIM N_numbers) {
+	LDIM n_curand_states = reserved_bytes / sizeof(curandState) + 1;
 	getGridDimension1D (n_curand_states, &n_blocks, &n_threads);
 	gen_stride = N_numbers / n_curand_states + 1;
 	if (gen_stride == 0) gen_stride = 1;

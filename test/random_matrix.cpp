@@ -6,7 +6,7 @@
 
 int main (int argc, char *argv[]) {
 
-	int N = argc > 1 ? atoi(argv[1]) : 1000;
+	LDIM N = argc > 1 ? atoll(argv[1]) : 1000;
 
 	memoryManager *mm = new memoryManager(false);
 	cudaRNG *rng = new cudaRNG (1024 * 1024, DEFAULT_SEED);
@@ -18,10 +18,10 @@ int main (int argc, char *argv[]) {
 	float nonzero_ratio = 0.5;
 	float *numbers = rng->generateRandomMatrix (mm, N, nonzero_ratio);
 
-	int nnz = countNonzeros (mm, numbers, N, false);
+	LDIM nnz = countNonzeros (mm, numbers, N, false);
 	
 	printf ("Desired ratio: %f\n", nonzero_ratio);
-	printf ("Generated ratio: %f\n", (float)nnz / N);
+	printf ("Generated ratio: %f(%lld)\n", (float)nnz / N, nnz);
 	printf ("Count on host...\n");
 	nnz = 0;
 	for (int i = 0; i < N; i++) {
