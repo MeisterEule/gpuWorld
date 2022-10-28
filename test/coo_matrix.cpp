@@ -10,8 +10,9 @@
 
 #define NONZERO_RATIO 0.5
 
-bool checkCPU (float *M, float *v, float *v_ref, LDIM Nrows) {
+int checkCPU (float *M, float *v, float *v_ref, LDIM Nrows) {
 	float *v_res = (float*)malloc(Nrows * sizeof(float));
+	int n_wrong = 0;
 	for (int row = 0; row < Nrows; row++) {
 		v_res[row] = 0;
 		for (int col = 0; col < Nrows; col++) {
@@ -20,9 +21,9 @@ bool checkCPU (float *M, float *v, float *v_ref, LDIM Nrows) {
 	}
 
 	for (int i = 0; i < Nrows; i++) {
-		if (fabs(v_ref[i] - v_res[i]) > 0.001) return false;
+		if (fabs(v_ref[i] - v_res[i]) > 0.001) n_wrong++;
 	}
-	return true;
+	return n_wrong;
 }
 
 int main (int argc, char *argv[]) {
@@ -33,14 +34,14 @@ int main (int argc, char *argv[]) {
 	memoryManager *mm = new memoryManager(true);
 	cudaRNG *rng = new cudaRNG (1024 * 1024, DEFAULT_SEED);
 
-	rng->initRNG (mm, N);
+	rng->initRNG (mm, n_matrix_elements);
 	float *matrix = rng->generateRandomMatrix (mm, n_matrix_elements, NONZERO_RATIO);	
 	float *vector = rng->generateRandomMatrix (mm, N, 1.0);
 	rng->freeRNG(mm);
 
 
 	LDIM nnz = countNonzeros (mm, matrix, n_matrix_elements, false);
-	printf ("Nr. of nonzeros: %lld (%f)\n", nnz, (float)nnz / n_matrix_elements);
+	printf ("Nr. of nonzeros: %lld (%lf)\n", nnz, (double)nnz / n_matrix_elements);
 
 	float *result_gpu;
 	if (nnz < INT_MAX) {

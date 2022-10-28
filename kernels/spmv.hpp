@@ -52,7 +52,7 @@ extern void launch_spmv_coo_kernel (int n_blocks, int n_threads, LDIM *rowidx, L
 
 
 template <typename T, typename U> T *spMVCoo (memoryManager *mm, T *matrix, T *v_in, LDIM Nrows, LDIM nnz) {
-	printf ("is possible? %d\n", mm->isPossible<LDIM> (3 * nnz));
+	printf ("is possible? %d\n", mm->isPossible<U> (3 * nnz));
 
 	T *v_out = (T*)malloc(Nrows * sizeof(T));
 	memset (v_out, 0, Nrows * sizeof(T));

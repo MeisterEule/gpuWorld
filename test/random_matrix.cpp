@@ -8,7 +8,7 @@ int main (int argc, char *argv[]) {
 
 	LDIM N = argc > 1 ? atoll(argv[1]) : 1000;
 
-	memoryManager *mm = new memoryManager(false);
+	memoryManager *mm = new memoryManager(true);
 	cudaRNG *rng = new cudaRNG (1024 * 1024, DEFAULT_SEED);
 
 	rng->initRNG (mm, N);
@@ -28,5 +28,5 @@ int main (int argc, char *argv[]) {
 		if (numbers[i] > 0) nnz++;
 		//printf ("%f\n", numbers[i]);
 	}
-	printf ("nnz: %f\n", (float)nnz / N);
+	printf ("nnz: %lf (%lld)\n", (double)nnz / N, nnz);
 }

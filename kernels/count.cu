@@ -40,13 +40,13 @@ __global__ void avg_atomic_kernel (int *data, int *count, int n_data) {
 }
 
 __global__ void count_nonzero_kernel (int *data, LDIM *count, LDIM n_data) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	LDIM tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
 	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
 }
 
 __global__ void count_nonzero_kernel (float *data, LDIM *count, LDIM n_data) {
-	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	LDIM tid = blockIdx.x * blockDim.x + threadIdx.x;
 	if (tid >= n_data) return;
 	if (data[tid] > 0) atomicAdd(&(count[0]), 1);
 }
