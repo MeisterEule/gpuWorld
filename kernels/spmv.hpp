@@ -5,6 +5,8 @@
 #include "memoryManager.hpp"
 #include "grid_utils.h"
 #include "random.h"
+#include "count.h"
+#include "scan.h"
 
 template<typename T,typename U> class cooMatrix
 {
@@ -25,7 +27,7 @@ template<typename T,typename U> class csrMatrix
 		U *colidx;
 		T *values;
 
-		//csrMatrix (cooMatrix *cm, int n_elements);
+		csrMatrix (memoryManager *mm, T *Msimple, LDIM Nrows, LDIM nnz);
 };
 
 template<typename T,typename U> cooMatrix<T,U>::cooMatrix(T *MSimple, LDIM Nrows, LDIM nnz) {
@@ -47,12 +49,56 @@ template<typename T,typename U> cooMatrix<T,U>::cooMatrix(T *MSimple, LDIM Nrows
 	}
 }
 
+template<typename T, typename U> csrMatrix<T,U>::csrMatrix (memoryManager *mm, T *MSimple, LDIM Nrows, LDIM nnz) {
+	nnz = nnz;
+	U *rowidx = (U*)malloc(nnz * sizeof(U));
+	colidx = (U*)malloc(nnz * sizeof(U));
+	values = (T*)malloc(nnz * sizeof(T));
+
+	LDIM idx = 0;
+	for (LDIM row = 0; row < Nrows; row++) {
+		for (LDIM col = 0; col < Nrows; col++) {
+			if (MSimple[row * Nrows + col] != 0) {
+				rowidx[idx] = (U)row;
+				colidx[idx] = (U)col;
+				values[idx] = MSimple[row * Nrows + col];
+				idx++;
+			}
+		}
+	}
+
+	U *rowidx_d, *count_d, *scan_d;
+	//cudaMalloc((void**)&rowidx_d, nnz * sizeof(U));
+	//cudaMalloc((void**)&count_d, Nrows * sizeof(U));
+	//cudaMalloc((void**)&scan_d, Nrows * sizeof(U));
+	//cudaMemcpy(rowidx_d, rowidx, nnz * sizeof(U), cudaMemcpyDeviceToHost);
+	//cudaMemset(count_d, 0, Nrows * sizeof(U));
+	//cudaMemset(scan_d, 0, Nrows * sizeof(U));
+
+	U *count_h = (U*)malloc(Nrows * sizeof(U));
+	U *scan_h = (U*)malloc(Nrows * sizeof(U));
+
+	//int n_threads, n_blocks;
+    	//getGridDimension1D (nnz, &n_blocks, &n_threads);
+	countElementsInArray (mm, rowidx, count_h, nnz, Nrows, false, false);
+	scanArray (mm, count_h, scan_h, Nrows, Nrows, false, false);
+
+	printf ("rowptr: \n");
+	for (int i = 0; i < Nrows; i++) {
+		printf ("%d ", scan_h[i]);
+	}
+	printf ("\n");
+
+	free (count_h);
+	free (scan_h);
+
+}
+
 extern void launch_spmv_coo_kernel (int n_blocks, int n_threads, int *rowidx, int *colidx, float *values, float *v, float *w, LDIM nnz);
 extern void launch_spmv_coo_kernel (int n_blocks, int n_threads, LDIM *rowidx, LDIM *colidx, float *values, float *v, float *w, LDIM nnz);
 
 
 template <typename T, typename U> T *spMVCoo (memoryManager *mm, T *matrix, T *v_in, LDIM Nrows, LDIM nnz) {
-	printf ("is possible? %d\n", mm->isPossible<U> (3 * nnz));
 
 	T *v_out = (T*)malloc(Nrows * sizeof(T));
 	memset (v_out, 0, Nrows * sizeof(T));

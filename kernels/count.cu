@@ -88,16 +88,9 @@ long long countNonzeros (memoryManager *mm, ComputeStep<float,int> *cs) {
 	return countNonzeros (mm, data, n_data, input_on_device);
 }
 
-void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
-        int n_data_in = cs_h->n_data_in->front();
-	int n_data_out = cs_h->n_data_out->front();
-        bool input_on_device = cs_h->input_on_device->front();
-	bool output_on_device = cs_h->input_on_device->front();
-	int *data_in = cs_h->data_in->front();
-        int *data_out = cs_h->data_out->front();
+void countElementsInArray (memoryManager *mm, int *data_in, int *data_out, int n_data_in, int n_data_out, bool input_on_device, bool output_on_device) {
 	int n_threads, n_blocks;
 	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
-
 
 	int *data_d;
 	if (input_on_device) {
@@ -122,6 +115,44 @@ void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
 	}
 	if (!input_on_device) mm->deviceFree<int>(data_d);
 	if (!output_on_device) mm->deviceFree<int>(count_d);
+
+}
+
+void countElementsInArray (memoryManager *mm, ComputeStep<int,int> *cs_h) {
+        int n_data_in = cs_h->n_data_in->front();
+	int n_data_out = cs_h->n_data_out->front();
+        bool input_on_device = cs_h->input_on_device->front();
+	bool output_on_device = cs_h->input_on_device->front();
+	int *data_in = cs_h->data_in->front();
+        int *data_out = cs_h->data_out->front();
+	countElementsInArray (mm, data_in, data_out, n_data_in, n_data_out, input_on_device, output_on_device);
+	///int n_threads, n_blocks;
+	///getGridDimension1D (n_data_in, &n_blocks, &n_threads);
+
+
+	///int *data_d;
+	///if (input_on_device) {
+	///	data_d = data_in;
+	///} else {
+	///	mm->deviceAllocate<int>(data_d, n_data_in, "countInput");
+	/// 	cudaMemcpy(data_d, data_in, n_data_in * sizeof(int), cudaMemcpyHostToDevice);
+	///}
+
+	///int *count_d;
+	///if (output_on_device) {
+	///	count_d = data_out;
+	///} else {
+	///	mm->deviceAllocate<int>(count_d, n_data_out, "countOutput");
+	///}
+	///cudaMemset(count_d, 0, n_data_out * sizeof(int));
+
+	///count_elements_in_array_kernel_int<<<n_blocks,n_threads>>>(data_d, count_d, n_data_in);
+
+	///if (!output_on_device) {
+	///   cudaMemcpy(data_out, count_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
+	///}
+	///if (!input_on_device) mm->deviceFree<int>(data_d);
+	///if (!output_on_device) mm->deviceFree<int>(count_d);
 }
 
 int *countElementsInArray (memoryManager *mm, ComputeStep<char,int> *cs_h) {

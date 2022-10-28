@@ -4,7 +4,8 @@ bin_PROGRAMS = reduce \
 	       scan \
 	       random \
 	       random_matrix \
-	       coo_matrix
+	       coo_matrix \
+	       csr_matrix
 
 reduce_SOURCES = reduce.cpp
 reduce_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
@@ -33,5 +34,10 @@ scan_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
 coo_matrix_SOURCES = coo_matrix.cpp
 coo_matrix_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
 coo_matrix_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
+csr_matrix_SOURCES = csr_matrix.cpp
+csr_matrix_CXXFLAGS = -I${srcdir}/../kernels -I${srcdir}/../classes
+csr_matrix_LDFLAGS = -L${top_builddir}/kernels/ -lkernels
+
 
 
