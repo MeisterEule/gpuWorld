@@ -16,7 +16,7 @@ int main (int argc, char *argv[]) {
 	memoryManager *mm = new memoryManager(false);
 	ComputeStep<int,int> cs (mm, N, N, false, false, generateArrayOfOnesCPU<int> (N));
 
-	scanArray (mm, &cs);
+	scanArray (mm, &cs, false);
 
 	int *data_out = cs.GetOutFirst();
 
