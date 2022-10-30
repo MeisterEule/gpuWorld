@@ -71,7 +71,7 @@ template<typename T, typename U> csrMatrix<T,U>::csrMatrix (memoryManager *mm, T
 
 	U *count_h = (U*)malloc(Nrows * sizeof(U));
 	//U *scan_h = (U*)malloc(Nrows * sizeof(U));
-	rowptr = (U*)malloc(Nrows * sizeof(U));
+	rowptr = (U*)malloc((Nrows + 1) * sizeof(U));
 
 	countElementsInArray (mm, rowidx, count_h, nnz, Nrows, false, false);
 	//scanArray (mm, count_h, scan_h, Nrows, Nrows, false, false, true);
@@ -166,13 +166,13 @@ template <typename T, typename U> T* spMVCsr (memoryManager *mm, T *matrix, T *v
 	//cudaMalloc((void**)&rowptr_d, Nrows * sizeof(U));
 	//cudaMAlloc((void**)&colidx_d, nnz * sizeof(U));
 	//cudaMAlloc((void**)&values_d, nnz * sizeof(T));
-	mm->deviceAllocate<U> (rowptr_d, Nrows, "csrrowptr");
+	mm->deviceAllocate<U> (rowptr_d, Nrows + 1, "csrrowptr");
 	mm->deviceAllocate<U> (colidx_d, nnz, "csrcolidx");
 	mm->deviceAllocate<T> (values_d, nnz, "csrvalues");
 
 	//printf ("Check 1\n");
 	//fflush(stdout);
-	cudaMemcpy (rowptr_d, csr_matrix.rowptr, Nrows * sizeof(U), cudaMemcpyHostToDevice);
+	cudaMemcpy (rowptr_d, csr_matrix.rowptr, (Nrows + 1) * sizeof(U), cudaMemcpyHostToDevice);
 	//printf ("Check 1.1\n");
 	//fflush(stdout);
 	cudaMemcpy (colidx_d, csr_matrix.colidx, nnz * sizeof(U), cudaMemcpyHostToDevice);

@@ -37,7 +37,8 @@ __global__ void scan_kernel (int *in, int *out, int n_elements, bool exclusive) 
 void scanArray (memoryManager *mm, int *data_in, int *data_out, int n_data_in, int n_data_out,
 		bool input_on_device, bool output_on_device, bool exclusive) {
  	int n_threads, n_blocks;
-	getGridDimension1D (n_data_in, &n_blocks, &n_threads);
+	if (exclusive) n_data_out++;
+	getGridDimension1D (n_data_out, &n_blocks, &n_threads);
 
 	/// THIS SIMPLE SCAN ONLY WORKS FOR ONE BLOCK!
 
@@ -56,7 +57,7 @@ void scanArray (memoryManager *mm, int *data_in, int *data_out, int n_data_in, i
 		mm->deviceAllocate<int>(scan_d, n_data_out, "countOutput");
 	}
 	cudaMemset(scan_d, 0, n_data_out * sizeof(int));
-	scan_kernel<<<n_blocks,n_threads,n_blocks*n_threads*sizeof(int)>>>(data_d, scan_d, n_data_in, exclusive);
+	scan_kernel<<<n_blocks,n_threads,n_blocks*n_threads*sizeof(int)>>>(data_d, scan_d, n_data_out, exclusive);
 
 	if (!output_on_device) cudaMemcpy (data_out, scan_d, n_data_out * sizeof(int), cudaMemcpyDeviceToHost);
 	if (!input_on_device) mm->deviceFree<int>(data_d);
